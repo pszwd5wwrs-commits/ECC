@@ -1,0 +1,238 @@
+======================================================================
+  AVL TREE - insert and delete with rebalancing      (Week 11 homework)
+  BF(node) = height(left) - height(right), height of a leaf = 1
+  a node with 2 children is deleted via its in-order successor
+======================================================================
+
+======================================================================
+  EXERCISE 1 : insert 90, then 12, into the AVL tree of figure 1
+======================================================================
+Starting tree (figure 1):
+                    30
+              /-----+-----\
+              20          60
+         /----+----\      +--\
+         10        25        70
+      /--+--\
+      5     15
+  Pre-order   (N L R) : 30 20 10 5 15 25 60 70
+  In-order    (L N R) : 5 10 15 20 25 30 60 70
+  Post-order  (L R N) : 5 15 10 25 20 70 60 30
+  Level-order (BFS)   : 30 20 60 10 25 70 5 15
+  BF of each node     : 5(0) 10(0) 15(0) 20(+1) 25(0) 30(+1) 60(-1) 70(0)
+  nodes = 8, height = 4, AVL check: OK
+
+>>> INSERT 90
+  Step 1 - BST insert: walk down from the root to an empty position
+    at 30 : 90 > 30, go RIGHT
+    at 60 : 90 > 60, go RIGHT
+    at 70 : 90 > 70, go RIGHT
+    empty position found: 90 becomes the RIGHT child of 70
+  Step 2 - walk back up to the root: update height, check BF, rotate if |BF| = 2
+    node 70 : h(L)=0  h(R)=1  BF=-1  ok
+    node 60 : h(L)=0  h(R)=2  BF=-2  <-- UNBALANCED
+        case RR (right child 70 has BF -1)
+        fix : single LEFT rotation at 60
+        LEFT rotation at 60: 70 moves up, 60 becomes its left child
+        balanced subtree:
+               70
+            /--+--\
+            60    90
+    node 30 : h(L)=3  h(R)=2  BF=+1  ok
+  Result - tree after inserting 90   (AVL check: OK, 1 rebalance)
+                     30
+              /------+------\
+              20            70
+         /----+----\     /--+--\
+         10        25    60    90
+      /--+--\
+      5     15
+
+>>> INSERT 12
+  Step 1 - BST insert: walk down from the root to an empty position
+    at 30 : 12 < 30, go LEFT
+    at 20 : 12 < 20, go LEFT
+    at 10 : 12 > 10, go RIGHT
+    at 15 : 12 < 15, go LEFT
+    empty position found: 12 becomes the LEFT child of 15
+  Step 2 - walk back up to the root: update height, check BF, rotate if |BF| = 2
+    node 15 : h(L)=1  h(R)=0  BF=+1  ok
+    node 10 : h(L)=1  h(R)=2  BF=-1  ok
+    node 20 : h(L)=3  h(R)=1  BF=+2  <-- UNBALANCED
+        case LR (left child 10 has BF -1)
+        fix : LEFT rotation at 10, then RIGHT rotation at 20
+        (1) LEFT rotation at 10: 15 moves up, 10 becomes its left child, 12 moves to the right of 10
+            subtree after (1):
+                         20
+                      /--+--\
+                      15    25
+                   /--+
+                   10
+                /--+--\
+                5     12
+        (2) RIGHT rotation at 20: 15 moves up, 20 becomes its right child
+        balanced subtree:
+                    15
+               /----+----\
+               10        20
+            /--+--\      +--\
+            5     12        25
+    node 30 : h(L)=3  h(R)=2  BF=+1  ok
+  Result - tree after inserting 12   (AVL check: OK, 1 rebalance)
+                       30
+              /--------+--------\
+              15                70
+         /----+----\         /--+--\
+         10        20        60    90
+      /--+--\      +--\
+      5     12        25
+
+Final tree of exercise 1 (drawn above):
+  Pre-order   (N L R) : 30 15 10 5 12 20 25 70 60 90
+  In-order    (L N R) : 5 10 12 15 20 25 30 60 70 90
+  Post-order  (L R N) : 5 12 10 25 20 15 60 90 70 30
+  Level-order (BFS)   : 30 15 70 10 20 60 90 5 12 25
+  BF of each node     : 5(0) 10(0) 12(0) 15(0) 20(-1) 25(0) 30(+1) 60(0) 70(0) 90(0)
+  nodes = 10, height = 4, AVL check: OK
+
+Summary of exercise 1:
+  insert 90  : RR at 60 -> left rotation at 60
+  insert 12  : LR at 20 -> left rotation at 10, right rotation at 20
+
+======================================================================
+  EXERCISE 2 : delete 1, 32, 40, 50, 60 (in sequence) from figure 2
+======================================================================
+Starting tree (figure 2):
+               30
+         /-----+-----\
+         7           40
+      /--+      /----+----\
+      1         35        60
+             /--+      /--+--\
+             32        50    70
+  Pre-order   (N L R) : 30 7 1 40 35 32 60 50 70
+  In-order    (L N R) : 1 7 30 32 35 40 50 60 70
+  Post-order  (L R N) : 1 7 32 35 50 70 60 40 30
+  Level-order (BFS)   : 30 7 40 1 35 60 32 50 70
+  BF of each node     : 1(0) 7(+1) 30(-1) 32(0) 35(+1) 40(0) 50(0) 60(0) 70(0)
+  nodes = 9, height = 4, AVL check: OK
+
+>>> DELETE 1
+  Step 1 - BST delete: search for 1 starting at the root
+    at 30 : 1 < 30, go LEFT
+    at 7  : 1 < 7, go LEFT
+    found 1: it is a leaf, so simply remove it
+  Step 2 - walk back up to the root: update height, check BF, rotate if |BF| = 2
+    node 7  : h(L)=0  h(R)=0  BF=0   ok
+    node 30 : h(L)=1  h(R)=3  BF=-2  <-- UNBALANCED
+        case RR (right child 40 has BF 0)
+        fix : single LEFT rotation at 30
+        LEFT rotation at 30: 40 moves up, 30 becomes its left child, 35 moves to the right of 30
+        balanced subtree:
+                        40
+                 /------+------\
+                 30            60
+            /----+----\     /--+--\
+            7         35    50    70
+                   /--+
+                   32
+  Result - tree after deleting 1   (AVL check: OK, 1 rebalance)
+                  40
+           /------+------\
+           30            60
+      /----+----\     /--+--\
+      7         35    50    70
+             /--+
+             32
+
+>>> DELETE 32
+  Step 1 - BST delete: search for 32 starting at the root
+    at 40 : 32 < 40, go LEFT
+    at 30 : 32 > 30, go RIGHT
+    at 35 : 32 < 35, go LEFT
+    found 32: it is a leaf, so simply remove it
+  Step 2 - walk back up to the root: update height, check BF, rotate if |BF| = 2
+    node 35 : h(L)=0  h(R)=0  BF=0   ok
+    node 30 : h(L)=1  h(R)=1  BF=0   ok
+    node 40 : h(L)=2  h(R)=2  BF=0   ok
+  Result - tree after deleting 32   (AVL check: OK, no rotation)
+               40
+         /-----+-----\
+         30          60
+      /--+--\     /--+--\
+      7     35    50    70
+
+>>> DELETE 40
+  Step 1 - BST delete: search for 40 starting at the root
+    found 40: it has two children, so use its in-order successor
+    successor = smallest key in the right subtree of 40 = 50
+    copy 50 into this node, then delete the old 50 from the right subtree
+    at 60 : 50 < 60, go LEFT
+    found 50: it is a leaf, so simply remove it
+  Step 2 - walk back up to the root: update height, check BF, rotate if |BF| = 2
+    node 60 : h(L)=0  h(R)=1  BF=-1  ok
+    node 50 : h(L)=2  h(R)=2  BF=0   ok
+  Result - tree after deleting 40   (AVL check: OK, no rotation)
+              50
+         /----+----\
+         30        60
+      /--+--\      +--\
+      7     35        70
+
+>>> DELETE 50
+  Step 1 - BST delete: search for 50 starting at the root
+    found 50: it has two children, so use its in-order successor
+    successor = smallest key in the right subtree of 50 = 60
+    copy 60 into this node, then delete the old 60 from the right subtree
+    found 60: it has one child, so 70 takes its place
+  Step 2 - walk back up to the root: update height, check BF, rotate if |BF| = 2
+    node 60 : h(L)=2  h(R)=1  BF=+1  ok
+  Result - tree after deleting 50   (AVL check: OK, no rotation)
+              60
+         /----+----\
+         30        70
+      /--+--\
+      7     35
+
+>>> DELETE 60
+  Step 1 - BST delete: search for 60 starting at the root
+    found 60: it has two children, so use its in-order successor
+    successor = smallest key in the right subtree of 60 = 70
+    copy 70 into this node, then delete the old 70 from the right subtree
+    found 70: it is a leaf, so simply remove it
+  Step 2 - walk back up to the root: update height, check BF, rotate if |BF| = 2
+    node 70 : h(L)=2  h(R)=0  BF=+2  <-- UNBALANCED
+        case LL (left child 30 has BF 0)
+        fix : single RIGHT rotation at 70
+        RIGHT rotation at 70: 30 moves up, 70 becomes its right child, 35 moves to the left of 70
+        balanced subtree:
+                 30
+            /----+----\
+            7         70
+                   /--+
+                   35
+  Result - tree after deleting 60   (AVL check: OK, 1 rebalance)
+           30
+      /----+----\
+      7         70
+             /--+
+             35
+
+Final tree of exercise 2 (drawn above):
+  Pre-order   (N L R) : 30 7 70 35
+  In-order    (L N R) : 7 30 35 70
+  Post-order  (L R N) : 7 35 70 30
+  Level-order (BFS)   : 30 7 70 35
+  BF of each node     : 7(0) 30(-1) 35(0) 70(+1)
+  nodes = 4, height = 3, AVL check: OK
+
+Summary of exercise 2:
+  delete 1   : RR at 30 -> left rotation at 30
+  delete 32  : no rotation needed
+  delete 40  : no rotation needed   [2 children, successor 50 copied up]
+  delete 50  : no rotation needed   [2 children, successor 60 copied up]
+  delete 60  : LL at 70 -> right rotation at 70   [2 children, successor 70 copied up]
+
+======================================================================
+  Run  java AVLTree -i  to insert / delete your own keys.
+======================================================================
